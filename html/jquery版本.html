@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+  <meta charset="utf-8">
+  
+  <script src="./jquery-2.1.4.min.js" charset="utf-8"></script>
+  <script src="./socket.io.js" charset="utf-8"></script>
+</head>
+ 
+<body>
+	<div class="box">
+		<div class="wsSet">
+			<h3 class="tit">
+			主动推送ws</h3>
+			<div class="set"></div>
+		</div>
+		<div class="wsGet">
+			<h3 class="tit">被动接受ws</h3>
+			<div class="get"></div>
+		</div>
+	</div>
+	<div class="dblock">
+		<font class="status">未连接</font>
+		<input  placeholder="ip地址" class="text" id="ip" value="ws://127.0.0.1:7001/"></input>
+		<input  placeholder="发送接口" class="text" id="setFun" value="server"></input>
+		<input  placeholder="接受接口" class="text" id="getFun" value="server"></input>
+		<textarea  placeholder="请输入发送内容" id="textStr" class="text textarea"></textarea>
+		<p>
+			<button type="submit" class="btn left" id="toLink">开始连接</button>
+			<button type="submit" class="btn" id="toServe">发送</button>
+		</p>
+	</div>
+	<script>
+		$(()=>{
+			let sock=io.connect('http://127.0.0.1:7001/');
+			//已连接
+			sock.on('connect', () => {
+				console.log('connect')
+				$(".status").html("已连接").addClass("on").removeClass("bad")
+			})
+			//未连接
+			sock.on('disconnect', () => {
+				console.log('disconnect')
+				$(".status").html("已断开").addClass("bad").removeClass("on")
+			})
+			
+			//推送
+			function startWs(ip,setFun,getFun){
+				// sock = io.connect('http://127.0.0.1:7001/')
+				
+				$("#toServe").click(()=>{
+					var val=$("#textStr").val()
+					sock.emit(setFun, val); // 发送
+					$(".set").append(`
+						<p>${val} /${getNowFormatDate()}</p>
+					`)
+				})
+				sock.on(getFun, str => { // 接收
+					$(".get").append(`
+						<p>${str} /${getNowFormatDate()}</p>
+					`)
+				})
+			}
+			$("#toLink").click(()=>{
+				const setFun = $("#setFun").val();
+				const getFun = $("#setFun").val();
+				startWs($("#ip").val(), setFun, getFun)
+			})
+			//年月日时分秒
+			function getNowFormatDate() {
+				var d = new Date();
+				var year = d.getFullYear();
+				var month = change(d.getMonth() + 1);
+				var day = change(d.getDate());
+				var hour = change(d.getHours());
+				var minute = change(d.getMinutes());
+				var second = change(d.getSeconds());
+			 
+				function change(t) {
+					if (t < 10) {
+						return "0" + t;
+					} else {
+						return t;
+					}
+				}
+				var time = year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+				return time;
+			}
+		})
+	</script>
+	<style>
+		.box{border:1px #ddd solid;width: 800px;height: 300px;display: flex;margin: 50px auto 10px;}
+		.box .wsSet,.box .wsGet{ float:left;display: block; border-right:1px #ddd solid;flex: 1;height:300px; overflow-y:auto; box-sizing: border-box;padding: 10px; color:green}
+		.box .wsGet{ color:blue}
+		.box .tit{ height: 40px; line-height: 40px;margin: 0; border-bottom:1px #ddd solid;}
+		.status{ padding: 0 10px; line-height: 36px; height: 36px;  font-weight:normal; color:#fff;background: gray; display: block;}
+		.status.on{ color:#fff;background: #4CAF50;}
+		.status.bad{ color:#fff;background: red;}
+		.dblock{margin:0 auto;width: 800px;}
+		.dblock .text{width: 800px; border:1px #ddd solid;height: 40px;line-height: 40px; padding: 10px;box-sizing: border-box;}
+		.dblock .text.textarea{height: 100px;}
+		.dblock .btn{ width:390px; margin:0 20px 0 0; float:left;height: 40px;display: inline;; line-height: 40px; text-align: center; background: #4CAF50;color: #fff;border: none;box-shadow: 0 5px 5px rgba(0,0,0,0.15);}
+		.dblock .btn.left{background: #2196F3;}
+		.dblock .btn:nth-of-type(2){margin: 0;}
+	</style>
+</body>
+<script>
+  
+</script>
+ 
+</html>
