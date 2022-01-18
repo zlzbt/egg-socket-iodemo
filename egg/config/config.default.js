@@ -29,6 +29,7 @@ module.exports = appInfo => {
 			  connectionMiddleware: [], //中间件
 			  packetMiddleware: [],//中间件
 			},
+			'/catch': {},
 			'/example': {
 			  connectionMiddleware: [],
 			  packetMiddleware: [],

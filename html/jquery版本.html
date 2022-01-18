@@ -23,17 +23,18 @@
 	<div class="dblock">
 		<font class="status">未连接</font>
 		<input  placeholder="ip地址" class="text" id="ip" value="ws://127.0.0.1:7001/"></input>
-		<input  placeholder="发送接口" class="text" id="setFun" value="server"></input>
-		<input  placeholder="接受接口" class="text" id="getFun" value="server"></input>
+		<input  placeholder="发送接口" class="text" id="setFun" value="catch"></input>
+		<input  placeholder="接受接口" class="text" id="getFun" value="catch"></input>
 		<textarea  placeholder="请输入发送内容" id="textStr" class="text textarea"></textarea>
 		<p>
-			<button type="submit" class="btn left" id="toLink">开始连接</button>
+			<!-- <button type="submit" class="btn left" id="toLink">开始连接</button> -->
 			<button type="submit" class="btn" id="toServe">发送</button>
 		</p>
 	</div>
 	<script>
 		$(()=>{
-			let sock=io.connect('http://127.0.0.1:7001/');
+			// let sock=io.connect('http://127.0.0.1:7001/');
+			let sock=io.connect('http://127.0.0.1:7001/catch');
 			//已连接
 			sock.on('connect', () => {
 				console.log('connect')
@@ -44,29 +45,23 @@
 				console.log('disconnect')
 				$(".status").html("已断开").addClass("bad").removeClass("on")
 			})
-			
-			//推送
-			function startWs(ip,setFun,getFun){
-				// sock = io.connect('http://127.0.0.1:7001/')
-				
-				$("#toServe").click(()=>{
-					var val=$("#textStr").val()
-					sock.emit(setFun, val); // 发送
-					$(".set").append(`
-						<p>${val} /${getNowFormatDate()}</p>
-					`)
-				})
-				sock.on(getFun, str => { // 接收
-					$(".get").append(`
+
+			sock.on($("#getFun").val(), str => { // 接收
+				$(".get").append(`
 						<p>${str} /${getNowFormatDate()}</p>
 					`)
-				})
-			}
-			$("#toLink").click(()=>{
-				const setFun = $("#setFun").val();
-				const getFun = $("#setFun").val();
-				startWs($("#ip").val(), setFun, getFun)
 			})
+			
+			//推送
+			$("#toServe").click(() => {
+				const setFun = $("#setFun").val();
+				var val = $("#textStr").val()
+				sock.emit(setFun, val); // 发送
+				$(".set").append(`
+						<p>${val} /${getNowFormatDate()}</p>
+					`)
+			})
+			
 			//年月日时分秒
 			function getNowFormatDate() {
 				var d = new Date();
@@ -100,7 +95,7 @@
 		.dblock{margin:0 auto;width: 800px;}
 		.dblock .text{width: 800px; border:1px #ddd solid;height: 40px;line-height: 40px; padding: 10px;box-sizing: border-box;}
 		.dblock .text.textarea{height: 100px;}
-		.dblock .btn{ width:390px; margin:0 20px 0 0; float:left;height: 40px;display: inline;; line-height: 40px; text-align: center; background: #4CAF50;color: #fff;border: none;box-shadow: 0 5px 5px rgba(0,0,0,0.15);}
+		.dblock .btn{ /* width:390px; */ width:100%; margin:0 20px 0 0; float:left;height: 40px;display: inline;; line-height: 40px; text-align: center; background: #4CAF50;color: #fff;border: none;box-shadow: 0 5px 5px rgba(0,0,0,0.15);}
 		.dblock .btn.left{background: #2196F3;}
 		.dblock .btn:nth-of-type(2){margin: 0;}
 	</style>
