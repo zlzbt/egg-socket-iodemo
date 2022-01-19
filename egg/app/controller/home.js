@@ -5,7 +5,9 @@ const Controller = require('egg').Controller;
 class HomeController extends Controller {
   async index() {
     const { ctx } = this;
-    ctx.body = 'hi, egg';
+    const url = '/api/rms/warehouse/1/robot/status/console?zoneCodes=kckq'
+    const result = await ctx.httpGet(url);
+    ctx.body = result
   }
 }
 

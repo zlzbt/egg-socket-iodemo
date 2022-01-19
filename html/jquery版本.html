@@ -47,6 +47,7 @@
 			})
 
 			sock.on($("#getFun").val(), str => { // 接收
+				console.log(str)
 				$(".get").append(`
 						<p>${str} /${getNowFormatDate()}</p>
 					`)

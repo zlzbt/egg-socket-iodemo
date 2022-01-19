@@ -1,27 +1,17 @@
-/* eslint valid-jsdoc: "off" */
-
 'use strict';
-
-/**
- * @param {Egg.EggAppInfo} appInfo app info
- */
+const Path = require('path');
 module.exports = appInfo => {
-  /**
-   * built-in config
-   * @type {Egg.EggAppConfig}
-   **/
   const config = exports = {};
 
   // use for cookie sign key, should change to your own and keep security
-  config.keys = appInfo.name + '_1622168544530_5598';
+  config.keys = 'egg_socket_1622168544530_5598';
 
-  // add your middleware config here
-  config.middleware = [];
-	
-  // add your user config here
-  const userConfig = {
-    // myAppName: 'egg',
+  config.serverBaseUrl = '172.31.239.151:9001';
+  config.session = {
+    renew: true,
+    // maxAge: 7 * 24 * 3600 * 1000,
   };
+  const getLog = filename => Path.join(appInfo.root, 'logs', appInfo.name, `${filename}.log`);
 	config.io = {
 		init: { }, // passed to engine.io
 		namespace: {
@@ -38,6 +28,5 @@ module.exports = appInfo => {
 	}
   return {
     ...config,
-    ...userConfig,
   };
 };
