@@ -91,10 +91,6 @@ class TaskService extends Service{
 
     async stoptimer() {
         const { socket } = this.ctx;
-        clearInterval(timers[socket.nsp.name].timer)
-        delete timers[socket.nsp.name];
-        console.log(`remove ${socket.nsp.name} namespace connection ${socket.id}`)
-        /* const { socket } = this.ctx
         const index = timers[socket.nsp.name].socketids.indexOf(socket.id)
         if (index > -1) {
             console.log(`remove ${socket.nsp.name} namespace connection ${socket.id}`)
@@ -106,7 +102,7 @@ class TaskService extends Service{
             }
         } else {
             console.log(`Not found [${socket.id}] connect`)
-        } */
+        }
     }
 }
 module.exports = TaskService;

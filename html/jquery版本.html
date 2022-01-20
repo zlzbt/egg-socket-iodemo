@@ -49,6 +49,13 @@
 
 			sock.on($("#getFun").val(), str => { // 接收
 				console.log(str)
+				$(".get").append(str)
+			})
+			sock.on('map_message', str => { // 接收
+				console.log(str)
+				const {code , zoneList = {}} = str;
+				Object.keys(zoneList).forEach(zone => {
+					const pointCodes = zoneList[zone];                                                                                                                                    				})
 				$(".get").append(`
 						<p>${str} /${getNowFormatDate()}</p>
 					`)

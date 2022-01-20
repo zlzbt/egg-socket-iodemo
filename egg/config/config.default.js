@@ -13,7 +13,11 @@ module.exports = appInfo => {
   };
   const getLog = filename => Path.join(appInfo.root, 'logs', appInfo.name, `${filename}.log`);
 
-  config.servicetask = ['bucketService'/* , 'lockPointService', 'robotService' */];
+  config.servicetask = [
+    { room: 'BUCKET_DATA', name: 'bucketService' },
+    /* { room: 'LOCKPOINT_DATA', service: 'lockPointService' },
+    { room: 'ROBOT_DATA', service: 'robotService' }, */
+  ];
 	config.io = {
 		init: { }, // passed to engine.io
 		namespace: {

@@ -1,5 +1,7 @@
 'use strict';
-
+/**
+ * 与client端进行socket通信处理中心
+ */
 const Controller = require('egg').Controller;
 class homeController extends Controller {
   async server() {
