@@ -12,18 +12,16 @@ module.exports = appInfo => {
     // maxAge: 7 * 24 * 3600 * 1000,
   };
   const getLog = filename => Path.join(appInfo.root, 'logs', appInfo.name, `${filename}.log`);
+
+  config.servicetask = ['bucketService'/* , 'lockPointService', 'robotService' */];
 	config.io = {
 		init: { }, // passed to engine.io
 		namespace: {
 			'/': {
-			  connectionMiddleware: [], //中间件
+			  connectionMiddleware: ['connection'], //中间件
 			  packetMiddleware: [],//中间件
 			},
 			'/catch': {},
-			'/example': {
-			  connectionMiddleware: [],
-			  packetMiddleware: [],
-			},
 		},
 	}
   return {

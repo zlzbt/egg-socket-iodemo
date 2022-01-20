@@ -29,12 +29,13 @@
 		<p>
 			<!-- <button type="submit" class="btn left" id="toLink">开始连接</button> -->
 			<button type="submit" class="btn" id="toServe">发送</button>
+			<button type="submit" class="btn left" id="toLink" onclick="disConnect()">断开连接</button>
 		</p>
 	</div>
 	<script>
 		$(()=>{
 			// let sock=io.connect('http://127.0.0.1:7001/');
-			let sock=io.connect('http://127.0.0.1:7001/catch');
+			let sock=io.connect('http://127.0.0.1:7001/');
 			//已连接
 			sock.on('connect', () => {
 				console.log('connect')
@@ -84,6 +85,10 @@
 				return time;
 			}
 		})
+
+		function disConnect(){
+			this.socket = null;
+		}
 	</script>
 	<style>
 		.box{border:1px #ddd solid;width: 800px;height: 300px;display: flex;margin: 50px auto 10px;}

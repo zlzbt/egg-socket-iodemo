@@ -59,7 +59,6 @@ module.exports = {
         try{
             const resultObj = await this.curl(url, option);
             /* if(resultObj.status !== 200){
-                console.log('>>>>>>>>>>>#62')
                 return Object.assign({ success: false, status: resultObj.status }, resultObj.data);
             } */
             if(autoType){
@@ -96,14 +95,11 @@ module.exports = {
                 return resultObj;
             }
             if (getBody) {
-                console.log('>>>>>>>>>>>#98')
                 return body;
             }
             if (body.success) {
-                console.log('>>>>>>>>>>>#101')
                 return body.data;
             }
-            console.log('>>>>>>>>>>>#106')
             return body;
         }catch(err){
             if (noCatch) {
@@ -128,4 +124,12 @@ module.exports = {
         return this[curl](api, 'DELETE', handleOpts(data, opts));
     },
     warehouseId : 1,
+
+    /**
+     * @param {serviceName} 文件夹名称 
+     * @returns 
+     */
+    getViewService(serviceName){
+        return this.service[serviceName];
+    }
 };

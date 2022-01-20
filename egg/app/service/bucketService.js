@@ -1,7 +1,7 @@
 const { Service } = require("egg");
 const api = require('../utils/api');
 const room = 'BUCKET_DATA';
-const pluginName = 'client-bucket-console-plugin';
+const pluginName = 'bucket-console-plugin';
 
 let timers = {};
 class TaskService extends Service{
@@ -69,7 +69,7 @@ class TaskService extends Service{
         return timer;
     }
 
-    async runTimer(){
+    async runtimer(){
         const { socket } = this.ctx;
         if (!timers[socket.nsp.name]) {
             console.log(`[${pluginName}] create ${socket.nsp.name} namespace`)
@@ -90,7 +90,11 @@ class TaskService extends Service{
     }
 
     async stoptimer() {
-        const { socket } = this.ctx
+        const { socket } = this.ctx;
+        clearInterval(timers[socket.nsp.name].timer)
+        delete timers[socket.nsp.name];
+        console.log(`remove ${socket.nsp.name} namespace connection ${socket.id}`)
+        /* const { socket } = this.ctx
         const index = timers[socket.nsp.name].socketids.indexOf(socket.id)
         if (index > -1) {
             console.log(`remove ${socket.nsp.name} namespace connection ${socket.id}`)
@@ -98,12 +102,11 @@ class TaskService extends Service{
             if (timers[socket.nsp.name].socketids.length === 0) {
                 console.log(`${socket.nsp.name} namespace no connections remove timer`)
                 clearInterval(timers[socket.nsp.name].timer)
-                clearInterval(timers[socket.nsp.name].rackTypeTimer)
                 delete timers[socket.nsp.name]
             }
         } else {
             console.log(`Not found [${socket.id}] connect`)
-        }
+        } */
     }
 }
 module.exports = TaskService;
