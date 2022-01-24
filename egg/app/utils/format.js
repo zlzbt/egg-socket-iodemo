@@ -202,7 +202,7 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
 /**
  * 格式化统计数据
  */
- const formatTotalCount = (countData = {}, ctx, prefix='', module='agvConsole.stateType.') => {
+const formatTotalCount = (countData = {}, ctx, prefix = '', module = 'agvConsole.stateType.') => {
   const counts = []
   Object.keys(countData).forEach(key => {
     counts.push({
@@ -214,4 +214,157 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
   return counts
 }
 
-module.exports = { formaSpaceLockAreastData, formatData, formatTotalDataInfo }
+/**
+ * 格式化充电桩数据
+ * @param {*} data 
+ * @param {*} ctx 
+ */
+const formatCharger = (data = [], ctx) => {
+  const ncd = []
+  data.forEach(c => {
+    const { id, chargerCode, mapCodeAndVersion, enabled = 0, chargerPortType, chargerType } = c
+    // const viewType = enabled === 1 ? 'CHARGER_ENABLE' : 'CHARGER_DISABLE'
+    const viewType = enabled ? 'CHARGER_ENABLE' : 'CHARGER_DISABLE'
+    ncd.push({
+      id,
+      viewType,
+      chargerCode,
+      mapCodeAndVersion,
+      chargerPortType,
+      chargerType
+    })
+  })
+  return ncd;
+}
+
+/**
+ * 上位机数据格式化
+ * @param {*} rbt 
+ */
+const formatRbtData = (ctx, rbt = {}, robot_exception = []) => {
+  const { robotCode, executingCmd, robotCmdState, robotOrderId, robotDirection, coordinate, speed, power, gyroConfirmed, touchLimitConfirmed, motorEnabled, isSleep = true, isOnCode,
+    isLocated, isLoad, isObstacle = true, podHeight, podDirection, gyroTemp, batteryTemp, leftMotorTemp, rightMotorTemp, liftMotorTemp, servoMotorTemp,
+    extensionDeviceFlag = false, extensionLoad = "N/A", extensionState = "IDLE" } = rbt
+  const { lowerErrors = [], upperErrors = [], otherDiviceErrors = [] } = formatRbtError(robot_exception)
+  const robotUIDataList = [{
+    type: "current",
+    title: ctx.__("agvConsole.rbtCard.currentCommand"),
+    list: [
+      {
+        type: "normal",
+        label: ctx.__("agvConsole.rbtCard.commandSerialNumber"),
+        value: robotOrderId
+      },
+      {
+        type: "normal",
+        label: ctx.__("agvConsole.rbtCard.commandContent"),
+        value: executingCmd
+      }
+    ]
+  },
+  {
+    type: "timming",
+    title: ctx.__("agvConsole.rbtCard.commandInfo"),
+    list: [
+      {
+        type: robotCmdState == 0 ? "primary" : robotCmdState == 1 ? "normal" : "error",
+        text: robotCmdState == 0 ? ctx.__("agvConsole.rbtCard.currentCommandComplete") :
+          robotCmdState == 1 ? ctx.__("agvConsole.rbtCard.currentCommandInExecution") : ctx.__("agvConsole.rbtCard.currentCommandException")
+      },
+      {
+        type: isOnCode ? "primary" : "error",
+        text: isOnCode ? ctx.__("agvConsole.rbtCard.onCode") : ctx.__("agvConsole.rbtCard.notOnCode")
+      },
+      {
+        type: isLocated ? "primary" : 'error',
+        text: isLocated ? ctx.__("agvConsole.rbtCard.located") : ctx.__("agvConsole.rbtCard.notLocated")
+      },
+      {
+        type: isObstacle ? 'error' : "primary",
+        text: isObstacle ? ctx.__("agvConsole.rbtCard.obstaclesAhead") : ctx.__("agvConsole.rbtCard.noObstaclesAhead")
+      },
+      {
+        type: gyroConfirmed ? "primary" : 'error',
+        text: gyroConfirmed ? ctx.__("agvConsole.rbtCard.gyroCorrectionComplete") : ctx.__("agvConsole.rbtCard.gyroCorrectionIncomplete")
+      },
+      {
+        type: touchLimitConfirmed ? "primary" : 'error',
+        text: touchLimitConfirmed ? ctx.__("agvConsole.rbtCard.touchLimitConfirmed") : ctx.__("agvConsole.rbtCard.touchLimitNotConfirmed")
+      },
+      {
+        type: isLoad ? "primary" : 'normal',
+        text: isLoad ? ctx.__("agvConsole.rbtCard.carryRack") : ctx.__("agvConsole.rbtCard.noCarryRack")
+      },
+      {
+        type: motorEnabled ? "primary" : 'normal',
+        text: motorEnabled ? ctx.__("agvConsole.rbtCard.motorEnabled") : ctx.__("agvConsole.rbtCard.motorDisable")
+      },
+      {
+        type: isSleep ? "normal" : 'primary',
+        text: isSleep ? ctx.__("agvConsole.rbtCard.dormant") : ctx.__("agvConsole.rbtCard.notDormant"),
+      },
+    ]
+  }, {
+    type: "lowerError",
+    title: ctx.__("agvConsole.rbtCard.lowerError"),
+    list: lowerErrors
+  },
+  {
+    type: "upperError",
+    title: ctx.__("agvConsole.rbtCard.upperError"),
+    list: upperErrors
+  }
+  ]
+  // 增加外部设备信息
+  if (extensionDeviceFlag) {
+    // 避免带载状态字符串为空
+    const extensionLoadStr = isNullUndefined(extensionLoad) ? "N/A" : extensionLoad
+    // 添加外部设备信息
+    robotUIDataList.push({
+      type: "otherDivice",
+      title: ctx.__("agvConsole.rbtCard.otherDivice"),
+      list: [
+        {
+          type: extensionState === 'BUSY' ? "primary" : extensionState === 'IDLE' ? "normal" : "error",
+          text: extensionState === 'IDLE' ? ctx.__("agvConsole.rbtCard.commandComplete") :
+            extensionState === 'BUSY' ? ctx.__("agvConsole.rbtCard.commandInExecution") : ctx.__("agvConsole.rbtCard.commandException")
+        },
+        {
+          type: "primary",
+          text: extensionLoadStr
+        }]
+    })
+    // 添加外部设备异常信息
+    robotUIDataList.push({
+      type: "otherDiviceError",
+      title: ctx.__("agvConsole.rbtCard.otherDiviceError"),
+      list: otherDiviceErrors
+    })
+  }
+  return { robotUIDataList, rbt }
+}
+
+/**
+ * 格式化上下位机异常
+ * @param {*} data 
+ */
+const formatRbtError = (data = []) => {
+  const lowerErrors = [], upperErrors = [], otherDiviceErrors = []
+  data.forEach(exp => {
+    const { errorType, errorLevel, errorCode, errorMsg } = exp
+    const type = errorLevel === 0 ? 'error' : 'warn'
+    const error_data = { label: errorCode, value: errorMsg, type }
+    if (errorType === 0) {
+      lowerErrors.push(error_data)
+    }
+    if (errorType === 1) {
+      upperErrors.push(error_data)
+    }
+    if (errorType === 2) {
+      otherDiviceErrors.push(error_data)
+    }
+  })
+  return { lowerErrors, upperErrors, otherDiviceErrors }
+}
+
+module.exports = { formaSpaceLockAreastData, formatData, formatTotalDataInfo, formatCharger, formatRbtData }

@@ -13,7 +13,7 @@ const handleOpts = (data, opts) => (typeof opts === 'boolean' ? { data, getBody:
 
 
 module.exports = {
-    async [curl](api, method, opts){
+    async [curl](api = '', method, opts){
         const { app, host, request, Authorization } = this;
         const { getBody, formFiles, formData, noCatch, noWarehouse, noUser, ...options } = opts;
         const config = app.config;

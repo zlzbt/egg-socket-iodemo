@@ -1,11 +1,13 @@
 const { Service } = require("egg");
 const api = require('../utils/api');
-const { formatData } = require('../utils/format');
+const { formatData, formatCharger, formatRbtData } = require('../utils/format');
 const { runtimerControl, stoptimerControl } = require('../utils/taskTimer');
-const { robotRoom: room } = require('../utils/constant');
+const { robotRoom: room, socketId2AgvCodeMapKey, warehouse2AgvCodeMapKey } = require('../utils/constant');
 const _L = require('lodash');
 
 const pluginName = 'robot-console-plugin';
+const mapPluginName = 'map-console-plugin';
+const lockPluginName = 'lockpoint-console-plugin';
 
 let timers = {};
 class TaskService extends Service {
@@ -163,7 +165,7 @@ class TaskService extends Service {
             rackChartData: [],
         }
         //获取机器人汇总信息
-        const getRobotInfoSummary = await this.ctx.httpGet(apis.summary.getRobotInfoSummary);
+        const getRobotInfoSummary = await this.ctx.httpGet(apis.getRobotInfoSummary);
         if (getRobotInfoSummary && getRobotInfoSummary.success === false) {
             this.ctx.logger.error(`[${pluginName}] RobotTimer Interval getRobotInfoSummary Error Response: `, getRobotInfoSummary)
             globalStatisticsData.robotChartData = []
@@ -172,7 +174,7 @@ class TaskService extends Service {
         }
 
         //获取小车电量汇总信息
-        const getRobotBatteryInfoSummary = await this.ctx.httpGet(apis.summary.getRobotBatteryInfoSummary);
+        const getRobotBatteryInfoSummary = await this.ctx.httpGet(apis.getRobotBatteryInfoSummary);
         if (getRobotBatteryInfoSummary && getRobotBatteryInfoSummary.success === false) {
             this.ctx.logger.error(`[${pluginName}] RobotTimer Interval getRobotBatteryInfoSummary Error Response: `, getRobotBatteryInfoSummary)
             globalStatisticsData.powerChartData = 0
@@ -183,7 +185,7 @@ class TaskService extends Service {
         const taskChartDataSummary = Object.keys(taskChartData).map(a => taskChartData[a])
         globalStatisticsData.taskChartData = await this.formatStateTypeI18n(taskChartDataSummary, 'type')
         //获取作业单汇总信息
-        const getTransportOrderStatistics = await this.ctx.httpGet(apis.summary.getTransportOrderStatistics);
+        const getTransportOrderStatistics = await this.ctx.httpGet(apis.getTransportOrderStatistics);
         if (getTransportOrderStatistics && getTransportOrderStatistics.success === false) {
             this.ctx.logger.error(`[${pluginName}] RobotTimer Interval getTransportOrderStatistics Error Response: `, getTransportOrderStatistics)
             globalStatisticsData.jobChartData = []
@@ -191,7 +193,7 @@ class TaskService extends Service {
             globalStatisticsData.jobChartData = await this.formatStateTypeI18n(getTransportOrderStatistics, 'state', 'stateType', 'wcs.')
         }
         //获取充电桩汇总信息
-        const getChargeStationSummary = await this.ctx.httpGet(apis.summary.getChargeStationSummary);
+        const getChargeStationSummary = await this.ctx.httpGet(apis.getChargeStationSummary);
         if (getChargeStationSummary && getChargeStationSummary.success === false) {
             this.ctx.logger.error(`[${pluginName}] RobotTimer Interval getChargeStationSummary Error Response: `, getChargeStationSummary)
             globalStatisticsData.chargeChartData = []
@@ -199,7 +201,7 @@ class TaskService extends Service {
             globalStatisticsData.chargeChartData = await this.formatStateTypeI18n(getChargeStationSummary, 'label')
         }
         //获取货架汇总信息
-        const getBucketInfoSummary = await this.ctx.httpGet(apis.summary.getBucketInfoSummary);
+        const getBucketInfoSummary = await this.ctx.httpGet(apis.getBucketInfoSummary);
         if (getBucketInfoSummary && getBucketInfoSummary.success === false) {
             this.ctx.logger.error(`[${pluginName}] RobotTimer Interval getBucketInfoSummary Error Response: `, getBucketInfoSummary)
             globalStatisticsData.rackChartData = []
@@ -323,7 +325,7 @@ class TaskService extends Service {
             const getLayerList = await this.getLayerListData(ctx, mapZones, robotListData)
 
             //获取统计信息
-            let globalStatisticsData = await this.getGlobalStatistics(apis, { robotChartData: statistics.status, taskChartData })
+            let globalStatisticsData = await this.getGlobalStatistics(apis.summaryApis, { robotChartData: statistics.status, taskChartData })
             if (globalStatisticsData && globalStatisticsData.success === false) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval globalStatisticsData List Error Response: `, globalStatisticsData)
             }
@@ -345,13 +347,219 @@ class TaskService extends Service {
         return timer
     }
 
+    /**
+   * 获取机器人类型列表
+   */
+    async getRobotType() {
+        const { socket, warehouseId } = this.ctx
+        const { phoenixRcs } = this.config;
+        const apis = api(phoenixRcs, { warehouseId });
+        const getAGVType = await this.ctx.httpPost(apis.robotApis.getRobotType, {}, true);
+
+        let map = {};
+        if (getAGVType.success) {
+            getAGVType.data && getAGVType.data.forEach(item => {
+                const { robotTypeName, firstClassification, secondClassification = '', sizeInformation } = item;
+                const height = sizeInformation && sizeInformation.split('*')[0];
+                const width = sizeInformation && sizeInformation.split('*')[1];
+                map[item.robotTypeCode] = {
+                    name: robotTypeName,
+                    type: firstClassification,
+                    secondClassification: secondClassification,
+                    width, height
+                }
+            })
+        }
+        this.ctx.setCornerCache('robotTypeMap', map)
+        setTimeout(async () => {
+            const robotTypeMap = this.ctx.getCornerCache('robotTypeMap') || {}
+            if (Object.keys(robotTypeMap).length !== Object.keys(map).length) {
+                await this.getRobotType()
+            }
+        }, 1000)
+    }
+
+    /**
+   * 急停状态和获取充电桩
+   */
+    mapTimer() {
+        const { phoenixRcs } = this.config;
+        const { warehouseId } = this.ctx;
+        const timer = setInterval(async () => {
+            // 获取急停状态
+            const pausedStateRes = await this.ctx.httpPost(api( phoenixRcs ).mapApis.getPausedState, {}, true);
+            let stopState = { stopFlag: "initial" }
+            if (pausedStateRes.success) {
+                const { isPaused, userName, pausedTime } = pausedStateRes.data
+                stopState = { stopFlag: isPaused ? 'stopped' : "initial", userName, pausedTime }
+            }
+            this.ctx.socket.nsp.to(room).emit('one_key_stop_message', { code: "StopState", stopState })
+            // 获取充电桩列表
+            const res = await this.ctx.httpGet(api('', { warehouseId }).mapApis.getChargerList)
+            if (res.success === false) {
+                this.ctx.logger.error('getChargerList err', res)
+                return
+            }
+            const chargerData = formatCharger(res);
+            this.ctx.socket.nsp.to(room).emit('map_message', { code: mapPluginName, chargerData })
+        }, 1000)
+        return timer
+    }
+
+    /**
+   * 获取机器人全路径信息
+   */
+    async getAgvTrafficInfo(warehouseId) {
+        const socketMap = this.ctx.getCornerCache(socketId2AgvCodeMapKey) || {};
+        const mapAagvCodes = this.ctx.getCornerCache(warehouse2AgvCodeMapKey) || {};
+        // 上位机对应客户端
+        const robot2socketidMap = {};
+        const robotCodes = [];
+        Object.keys(socketMap).forEach(async (socketId) => {
+            const robotCode = socketMap[socketId];
+            if (!robotCode) {
+                // 成功推送机器人路径规划
+                await this.sendAgvLockSocket(socketId, { amrRegion: {} }, 'amrAreaRenderer')
+                return false;
+            }
+            if (!mapAagvCodes[warehouseId] || mapAagvCodes[warehouseId] === 'undefined' || mapAagvCodes[warehouseId].length < 1) {
+                return false;
+            }
+
+            // 记录一台AGV被多少客户端请求
+            if (robot2socketidMap[robotCode]) {
+                robot2socketidMap[robotCode].push(socketId);
+            } else {
+                robot2socketidMap[robotCode] = [];
+                robot2socketidMap[robotCode].push(socketId);
+            }
+            robotCodes.push(robotCode);
+
+            const { phoenixRcs } = this.config;
+            const res = await this.ctx.httpPost(`${api(phoenixRcs, { warehouseId }).robotApis.getMultiTrafficInfo}`, mapAagvCodes[warehouseId], true)
+            if (res.success === false) {
+                await this.sendAgvLockSocket(socketId, {})
+                return;
+            }
+            const agvPath = {};
+            let hasPath = false;
+            let copyAmrRegion = {};
+            const lineList = (res.data && res.data[0] && res.data[0].path && res.data[0].path.lineList) || [];
+            const spaceLockLayers = (res.data && res.data[0] && res.data[0].spaceLock && res.data[0].spaceLock.layers) || [];
+            if (lineList && lineList.length > 0 || spaceLockLayers.length > 0) {
+                hasPath = true;
+            }
+
+            // slam 机器人区域显示
+            await this.sendAgvLockSocket(socketId, { amrRegion: copyAmrRegion }, 'amrAreaRenderer')
+            if (!hasPath) {
+                // 成功推送机器人路径规划
+                await this.sendAgvLockSocket(socketId, {})
+            } else {
+                await this.sendAgvLockSocket(socketId, {}, lockPluginName, spaceLockLayers, lineList,)
+            }
+        })
+
+        // 有选择的机器人，进行上位机数据推送
+        if (robotCodes.length > 0) {
+            await this.getRobotUIData(robot2socketidMap, robotCodes, warehouseId)
+        }
+    }
+
+    /**
+   * 获取机器人上位机数据
+   * @param {*} robot2socketidMap 
+   * @param {*} robotCodes 
+   */
+    async getRobotUIData(robot2socketidMap = {}, robotCodes = [], warehouseId) {
+        const { phoenixRcs } = this.config;
+        const apis = api(phoenixRcs, { warehouseId });
+        // 根据agvCode查询上位机数据
+        const res = await this.ctx.httpPost(apis.robotApis.getRobotUiList, robotCodes)
+        if (res && res.success === false) {
+            this.ctx.logger.error(`getRobotUIData ${apis.getRobotUiList}|${robotCodes}|response: ${res}`)
+            return
+        }
+        // 根据agvCode查询上位机异常数据
+        const exception_res = {} || await this.ctx.httpPost(apis.getRobotErrors, robotCodes)
+        if (exception_res && exception_res.success === false) {
+            this.ctx.logger.error(`getRobotUIData ${apis.getRobotErrors}|${robotCodes}|response: ${exception_res}`)
+            return
+        }
+        const resData = res.filter(a => a);
+        // 查询上位机数据发送给客户端
+        resData.forEach((rbt = {}) => {
+            // 机器人上位机数据
+            const robotSocketIds = robot2socketidMap[rbt.robotCode]
+            // 机器人上位机异常数据
+            const robot_exception = exception_res[rbt.robotCode]
+            // 数据格式化
+            const sendData = formatRbtData(this.ctx, rbt, robot_exception)
+            this.sendRobotUIDataSocket(robotSocketIds, sendData)
+        })
+        if (resData.length === 0) {
+            robotCodes.forEach(robotCode => {
+                const robotSocketIds = robot2socketidMap[robotCode]
+                const sendData = formatRbtData(this.ctx)
+                this.sendRobotUIDataSocket(robotSocketIds, sendData)
+            })
+        }
+    }
+
+    // 推送上位机数据
+    async sendRobotUIDataSocket(socketIds = [], sendData, pluginCode = 'robotUIDataType') {
+        socketIds.forEach(socketId => this.ctx.socket.nsp.to(socketId).emit('robot_ui_message', {
+            code: pluginCode,
+            robotUIData: sendData
+        }))
+    }
+
+    // 推送数据
+    async sendAgvLockSocket(socketId, pathList = {}, code = lockPluginName, spaceLockLayers, lineList) {
+        let hasPath = true;
+        if (_L.isEmpty(pathList) && (_L.isEmpty(spaceLockLayers) || !spaceLockLayers)) {
+            hasPath = false
+        }
+        this.ctx.socket.nsp.to(socketId).emit('map_message', {
+            code,
+            bindCode: 'agvPathLockType',
+            customPoints: pathList,
+            // cardprops: this.ctx.helper.i18nListFormat(lockcardprops, 'agvConsole.lockcard.', this.ctx),
+            bindContainers: {},
+            spaceLockLayers,
+            lineList,
+            hasPath
+        })
+    }
+
+    /**
+   * 发送机器人全路径
+   */
+    robotTrafficInfoTimer() {
+        const timer = setInterval(async () => {
+            const { warehouseId } = this.ctx;
+            // 发送机器人全路径
+            await this.getAgvTrafficInfo(warehouseId);
+        }, 1000);
+        return timer
+    }
+
     async runtimer() {
         const { socket } = this.ctx;
+
+        // 获取机器人类型列表
+        await this.getRobotType();
+
         //  展示在地图上的小车数据
         const timer = this.robotTimer();
         // 左侧列表数据统计包含（机器人、任务、作业单、告警、图层、统计）
-        const leftNavTimer = this.leftNavTimer()
-        const timersObj = { timer, leftNavTimer }
+        const leftNavTimer = this.leftNavTimer();
+        // 机器人路径
+        const robotTrafficTimer = this.robotTrafficInfoTimer();
+        // 充电桩信息以及急停状态
+        const mapTimer = this.mapTimer();
+
+        const timersObj = { timer, leftNavTimer, mapTimer }
         runtimerControl({ socket, timers, pluginName, leftNavTimer, timersObj })
     }
 

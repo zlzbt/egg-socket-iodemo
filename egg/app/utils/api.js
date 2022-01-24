@@ -6,6 +6,7 @@ const api = (serverUrl, data = {}) => {
             getRobotListConsole: `${serverUrl}/api/rms/warehouse/${warehouseId}/robot/status/console`, // GET 获取所有的机器人列表
             getRobotType:  `${serverUrl}/api/basic/warehouse/${warehouseId}/robotType/getByCondition`,  //获取机器人类型
             getMultiTrafficInfo: `${serverUrl}/api/rts/warehouse/${warehouseId}/robot/getMultiTrafficInfo`, // post 查看机器人全路径信息
+            getRobotUiList:`${serverUrl}/api/rms/warehouse/${warehouseId}/robot/detail/by_robot`, //获取上位机信息
         },
         // 货架
         bucketApis:{
@@ -30,7 +31,7 @@ const api = (serverUrl, data = {}) => {
             getChargeStationSummary:`${serverUrl}/api/rms/warehouse/${warehouseId}/charger/bind/getStationChargerSummary`,  //充电桩汇总
             getBucketInfoSummary:`${serverUrl}/api/basic/warehouse/${warehouseId}/rack/getBucketInfoSummary`,  //货架汇总
         },
-        others:{
+        mapApis:{
             getChargerList: `${serverUrl}/api/basic/warehouse/${warehouseId}/charger/all`, // GET 获取地图充电桩列表
             getPausedState: `${serverUrl}/api/rcs/agv/ctrl/getPausedState`, // 获取急停状态
             getChargeThreshold: `${serverUrl}/api/basic/warehouse/${warehouseId}/config/getChargeThreshold`, //获取低电量配置，
