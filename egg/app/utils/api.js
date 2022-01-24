@@ -38,6 +38,10 @@ const api = (serverUrl, data = {}) => {
         lockApi: {
             // 根据类型查询所有的锁闭信息 故障锁闭、人工锁闭、货架锁闭
             queryLockInfoByTypes: `${serverUrl}/api/rts/warehouse/${warehouseId}/space-lock/query-by-types`,
+        },
+        // 国际化
+        i18nApis: {
+            queryWithCode: `${serverUrl}/api/basic/dictionary/queryWithCode`
         }
 
         

@@ -1,5 +1,5 @@
 'use strict';
-const Path = require('path');
+const {robotRoom, rackRoom, lockpointRoom} = require('./../app/utils/constant');
 module.exports = appInfo => {
   const config = exports = {};
 
@@ -11,12 +11,11 @@ module.exports = appInfo => {
     renew: true,
     // maxAge: 7 * 24 * 3600 * 1000,
   };
-  const getLog = filename => Path.join(appInfo.root, 'logs', appInfo.name, `${filename}.log`);
 
   config.servicetask = [
-    { room: 'BUCKET_DATA', name: 'bucketService' },
-    /* { room: 'LOCKPOINT_DATA', service: 'lockPointService' },
-    { room: 'ROBOT_DATA', service: 'robotService' }, */
+    { room: rackRoom, name: 'rackService' },
+    { room: lockpointRoom, name: 'lockPointService' },
+    { room: robotRoom, name: 'robotService' },
   ];
 	config.io = {
 		init: { }, // passed to engine.io

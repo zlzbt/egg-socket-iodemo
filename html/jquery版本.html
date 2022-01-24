@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
- 
+
 <head>
-  <meta charset="utf-8">
-  
-  <script src="./jquery-2.1.4.min.js" charset="utf-8"></script>
-  <script src="./socket.io.js" charset="utf-8"></script>
+	<meta charset="utf-8">
+
+	<script src="./jquery-2.1.4.min.js" charset="utf-8"></script>
+	<script src="./socket.io.js" charset="utf-8"></script>
 </head>
- 
+
 <body>
 	<div class="box">
 		<div class="wsSet">
 			<h3 class="tit">
-			主动推送ws</h3>
+				主动推送ws</h3>
 			<div class="set"></div>
 		</div>
 		<div class="wsGet">
@@ -22,10 +22,10 @@
 	</div>
 	<div class="dblock">
 		<font class="status">未连接</font>
-		<input  placeholder="ip地址" class="text" id="ip" value="ws://127.0.0.1:7001/"></input>
-		<input  placeholder="发送接口" class="text" id="setFun" value="catch"></input>
-		<input  placeholder="接受接口" class="text" id="getFun" value="catch"></input>
-		<textarea  placeholder="请输入发送内容" id="textStr" class="text textarea"></textarea>
+		<input placeholder="ip地址" class="text" id="ip" value="ws://127.0.0.1:7001/"></input>
+		<input placeholder="发送接口" class="text" id="setFun" value="catch"></input>
+		<input placeholder="接受接口" class="text" id="getFun" value="catch"></input>
+		<textarea placeholder="请输入发送内容" id="textStr" class="text textarea"></textarea>
 		<p>
 			<!-- <button type="submit" class="btn left" id="toLink">开始连接</button> -->
 			<button type="submit" class="btn" id="toServe">发送</button>
@@ -33,9 +33,9 @@
 		</p>
 	</div>
 	<script>
-		$(()=>{
+		$(() => {
 			// let sock=io.connect('http://127.0.0.1:7001/');
-			let sock=io.connect('http://127.0.0.1:7001/');
+			let sock = io.connect('http://127.0.0.1:7001/');
 			//已连接
 			sock.on('connect', () => {
 				console.log('connect')
@@ -52,15 +52,16 @@
 				$(".get").append(str)
 			})
 			sock.on('map_message', str => { // 接收
-				console.log(str)
-				const {code , zoneList = {}} = str;
-				Object.keys(zoneList).forEach(zone => {
-					const pointCodes = zoneList[zone];                                                                                                                                    				})
+				// console.log(str)
+				const { code, zoneList = {} } = str;
+				/* Object.keys(zoneList).forEach(zone => {
+					const pointCodes = zoneList[zone];
+				}) */
 				$(".get").append(`
-						<p>${str} /${getNowFormatDate()}</p>
+						<p>${code} /${getNowFormatDate()}</p>
 					`)
 			})
-			
+
 			//推送
 			$("#toServe").click(() => {
 				const setFun = $("#setFun").val();
@@ -70,7 +71,7 @@
 						<p>${val} /${getNowFormatDate()}</p>
 					`)
 			})
-			
+
 			//年月日时分秒
 			function getNowFormatDate() {
 				var d = new Date();
@@ -80,7 +81,7 @@
 				var hour = change(d.getHours());
 				var minute = change(d.getMinutes());
 				var second = change(d.getSeconds());
-			 
+
 				function change(t) {
 					if (t < 10) {
 						return "0" + t;
@@ -93,28 +94,108 @@
 			}
 		})
 
-		function disConnect(){
+		function disConnect() {
 			this.socket = null;
 		}
 	</script>
 	<style>
-		.box{border:1px #ddd solid;width: 800px;height: 300px;display: flex;margin: 50px auto 10px;}
-		.box .wsSet,.box .wsGet{ float:left;display: block; border-right:1px #ddd solid;flex: 1;height:300px; overflow-y:auto; box-sizing: border-box;padding: 10px; color:green}
-		.box .wsGet{ color:blue}
-		.box .tit{ height: 40px; line-height: 40px;margin: 0; border-bottom:1px #ddd solid;}
-		.status{ padding: 0 10px; line-height: 36px; height: 36px;  font-weight:normal; color:#fff;background: gray; display: block;}
-		.status.on{ color:#fff;background: #4CAF50;}
-		.status.bad{ color:#fff;background: red;}
-		.dblock{margin:0 auto;width: 800px;}
-		.dblock .text{width: 800px; border:1px #ddd solid;height: 40px;line-height: 40px; padding: 10px;box-sizing: border-box;}
-		.dblock .text.textarea{height: 100px;}
-		.dblock .btn{ /* width:390px; */ width:100%; margin:0 20px 0 0; float:left;height: 40px;display: inline;; line-height: 40px; text-align: center; background: #4CAF50;color: #fff;border: none;box-shadow: 0 5px 5px rgba(0,0,0,0.15);}
-		.dblock .btn.left{background: #2196F3;}
-		.dblock .btn:nth-of-type(2){margin: 0;}
+		.box {
+			border: 1px #ddd solid;
+			width: 800px;
+			height: 300px;
+			display: flex;
+			margin: 50px auto 10px;
+		}
+
+		.box .wsSet,
+		.box .wsGet {
+			float: left;
+			display: block;
+			border-right: 1px #ddd solid;
+			flex: 1;
+			height: 300px;
+			overflow-y: auto;
+			box-sizing: border-box;
+			padding: 10px;
+			color: green
+		}
+
+		.box .wsGet {
+			color: blue
+		}
+
+		.box .tit {
+			height: 40px;
+			line-height: 40px;
+			margin: 0;
+			border-bottom: 1px #ddd solid;
+		}
+
+		.status {
+			padding: 0 10px;
+			line-height: 36px;
+			height: 36px;
+			font-weight: normal;
+			color: #fff;
+			background: gray;
+			display: block;
+		}
+
+		.status.on {
+			color: #fff;
+			background: #4CAF50;
+		}
+
+		.status.bad {
+			color: #fff;
+			background: red;
+		}
+
+		.dblock {
+			margin: 0 auto;
+			width: 800px;
+		}
+
+		.dblock .text {
+			width: 800px;
+			border: 1px #ddd solid;
+			height: 40px;
+			line-height: 40px;
+			padding: 10px;
+			box-sizing: border-box;
+		}
+
+		.dblock .text.textarea {
+			height: 100px;
+		}
+
+		.dblock .btn {
+			/* width:390px; */
+			width: 100%;
+			margin: 0 20px 0 0;
+			float: left;
+			height: 40px;
+			display: inline;
+			;
+			line-height: 40px;
+			text-align: center;
+			background: #4CAF50;
+			color: #fff;
+			border: none;
+			box-shadow: 0 5px 5px rgba(0, 0, 0, 0.15);
+		}
+
+		.dblock .btn.left {
+			background: #2196F3;
+		}
+
+		.dblock .btn:nth-of-type(2) {
+			margin: 0;
+		}
 	</style>
 </body>
 <script>
-  
+
 </script>
- 
+
 </html>

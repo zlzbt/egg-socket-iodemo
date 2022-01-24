@@ -10,6 +10,8 @@ const curl = Symbol('Context#curl');
 const curlCookie = Symbol('Context#Evo#curlCookie');
 
 const handleOpts = (data, opts) => (typeof opts === 'boolean' ? { data, getBody: opts } : Object.assign({ data }, opts));
+
+
 module.exports = {
     async [curl](api, method, opts){
         const { app, host, request, Authorization } = this;
@@ -123,6 +125,7 @@ module.exports = {
     httpDelete(api, data, opts) {
         return this[curl](api, 'DELETE', handleOpts(data, opts));
     },
+
     warehouseId : 1,
 
     /**
@@ -131,5 +134,12 @@ module.exports = {
      */
     getViewService(serviceName){
         return this.service[serviceName];
-    }
+    },
+
+    setCornerCache(key, value) {
+        this.app.setCornerCache(key, value);
+    },
+    getCornerCache(key) {
+        return this.app.getCornerCache(key);
+    },
 };

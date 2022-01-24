@@ -1,15 +1,16 @@
 const { Service } = require("egg");
 const api = require('../utils/api');
-const room = 'BUCKET_DATA';
-const pluginName = 'bucket-console-plugin';
+const {runtimerControl, stoptimerControl} = require('../utils/taskTimer');
+const {rackRoom: room} = require('../utils/constant');
+const pluginName = 'bucket-console';
 
 let timers = {};
-class TaskService extends Service{
-    async bucketTimer(){
+class TaskService extends Service {
+    async bucketTimer() {
         const { ctx } = this;
         const { warehouseId } = ctx;
         const timer = setInterval(async () => {
-            const res = await ctx.httpPost(api('', {warehouseId}).bucketApis.getBucketList, {}, {
+            const res = await ctx.httpPost(api('', { warehouseId }).bucketApis.getBucketList, {}, {
                 timeout: 50000, // 网络不稳定，现场导致接口请求超时的问题
                 getBody: true,
             });
@@ -69,40 +70,15 @@ class TaskService extends Service{
         return timer;
     }
 
-    async runtimer(){
+    async runtimer() {
         const { socket } = this.ctx;
-        if (!timers[socket.nsp.name]) {
-            console.log(`[${pluginName}] create ${socket.nsp.name} namespace`)
-            const timer = await this.bucketTimer()
-            timers[socket.nsp.name] = {
-                timer: timer,
-                socketids: [socket.id]
-            }
-        } else {
-            console.log(`update ${socket.nsp.name} namespace connection ${socket.id}`)
-            const index = timers[socket.nsp.name].socketids.indexOf(socket.id)
-            if (index > -1) {
-                console.log(`${socket.nsp.name} namespace existing connection ${socket.id}`)
-            } else {
-                timers[socket.nsp.name].socketids.push(socket.id)
-            }
-        }
+        const timer = await this.bucketTimer();
+        runtimerControl({ socket, timers, pluginName, timersObj: {timer}})
     }
 
     async stoptimer() {
         const { socket } = this.ctx;
-        const index = timers[socket.nsp.name].socketids.indexOf(socket.id)
-        if (index > -1) {
-            console.log(`remove ${socket.nsp.name} namespace connection ${socket.id}`)
-            timers[socket.nsp.name].socketids.splice(index, 1)
-            if (timers[socket.nsp.name].socketids.length === 0) {
-                console.log(`${socket.nsp.name} namespace no connections remove timer`)
-                clearInterval(timers[socket.nsp.name].timer)
-                delete timers[socket.nsp.name]
-            }
-        } else {
-            console.log(`Not found [${socket.id}] connect`)
-        }
+        stoptimerControl({socket, timers, timerArr: ['timer']})
     }
 }
 module.exports = TaskService;
