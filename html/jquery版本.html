@@ -35,7 +35,7 @@
 	<script>
 		$(() => {
 			// let sock=io.connect('http://127.0.0.1:7001/');
-			let sock = io.connect('http://localhost:7001/control');
+			let sock = io.connect('http://localhost:7001/');
 			//已连接
 			sock.on('connect', () => {
 				console.log('connect')
@@ -45,6 +45,10 @@
 			sock.on('disconnect', () => {
 				console.log('disconnect')
 				$(".status").html("已断开").addClass("bad").removeClass("on")
+			})
+
+			sock.on('map_message', (msg) => {
+				console.log('map_message', msg)
 			})
 
 			sock.on($("#getFun").val(), str => { // 接收
