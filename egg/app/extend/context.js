@@ -25,6 +25,7 @@ module.exports = {
         if (autoType) {
             options.dataType = '';
         }
+        api = api && api.replace('undefined/', '');
         const url = !/^[^/]*\/\//.test(api) && baseUrl ? `${baseUrl}/${api.replace(/^\//, '')}` : api;
         const headers = {
             'content-type': 'application/json',
@@ -32,9 +33,9 @@ module.exports = {
             // auth权限
             Authorization,
         };
-        if (request && request.headers && request.headers.cookie) {
+        /* if (request && request.headers && request.headers.cookie) {
             headers.cookie = request.headers.cookie;
-        }
+        } */
         const option = Object.assign({ dataType: 'json' }, options, {
             headers: Object.assign(headers, options.headers),
             method,

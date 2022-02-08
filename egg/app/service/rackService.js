@@ -16,7 +16,7 @@ class TaskService extends Service {
             });
             if (res.success === false) {
                 this.ctx.logger.error('[bucketTimer] Error Interval Data: ', res);
-                return ctx.callback(res);
+                // return ctx.callback(res);
             }
             const zoneList = {};
             (res.data || []).forEach(ele => {

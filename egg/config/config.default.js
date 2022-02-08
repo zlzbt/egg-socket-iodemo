@@ -6,7 +6,7 @@ module.exports = appInfo => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = 'egg_socket_1622168544530_5598';
 
-  config.serverBaseUrl = '172.31.239.151:9001';
+  config.serverBaseUrl = 'http://172.31.239.151:9001';
   config.session = {
     renew: true,
     // maxAge: 7 * 24 * 3600 * 1000,

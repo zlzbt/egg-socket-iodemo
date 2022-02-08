@@ -181,7 +181,7 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
   })
 
   return {
-    code: pluginName,
+    code: 'robot-console-plugin',
     listInfo: {
       robot: getRobotInfo,
       job: getTransportOrderList,

@@ -1,6 +1,6 @@
 const { Service } = require("egg");
 const api = require('../utils/api');
-const { formatData, formatCharger, formatRbtData } = require('../utils/format');
+const { formatData, formatCharger, formatRbtData, formatTotalDataInfo } = require('../utils/format');
 const { runtimerControl, stoptimerControl } = require('../utils/taskTimer');
 const { robotRoom: room, socketId2AgvCodeMapKey, warehouse2AgvCodeMapKey } = require('../utils/constant');
 const _L = require('lodash');
@@ -18,7 +18,7 @@ class TaskService extends Service {
         const timer = setInterval(async () => {
             const { ctx } = this;
             const { socket, warehouseId, session } = ctx;
-            const mapZones = session.mapZones || ''.split(',')
+            const mapZones = (session.mapZones || '').split(',') || 'kckq';
             if (!mapZones || mapZones.length === 0) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval mapZones is NULL `, warehouseId)
                 return false
@@ -32,10 +32,9 @@ class TaskService extends Service {
             }
 
             // 查询AGV
-            const res = await ctx.httpGet(`${api('', { warehouseId }).robotApis.getRobotListConsole}?zoneCodes=${mapZones}`, {}, true)
+            const res = await ctx.httpGet(`${api('', { warehouseId }).robotApis.getRobotListConsole}?zoneCodes=${mapZones}`, {}, true) || {}
             if (res && res.success === false) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval getRobotListConsole Error Response: `, res)
-                return false
             }
 
             if (JSON.stringify(robotTypeMap) === "{}") {
@@ -241,7 +240,7 @@ class TaskService extends Service {
         const timer = setInterval(async () => {
             const { config: { serverBaseUrl: phoenixRcs }, ctx } = this;
             const { socket, session, warehouseId } = ctx
-            const mapZones = (session.mapZones || '').split(',')
+            const mapZones = (session.mapZones || '').split(',') || 'kckq';
             if (!mapZones || mapZones.length === 0) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval mapZones is NULL `, warehouseId)
             }
