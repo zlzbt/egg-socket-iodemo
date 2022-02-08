@@ -66,7 +66,6 @@ module.exports = {
             } */
             if(autoType){
                 const type = resultObj.headers['content-type'].replace(/;.*$/, '');
-                console.log(type);
                 switch(type){
                     case 'application/json':
                         // 返回json

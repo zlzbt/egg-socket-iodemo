@@ -15,9 +15,8 @@ class SocketService extends Service {
     }
 
     async disconnect() {
-        console.log('namespace   disconnection!')
+        // console.log('namespace disconnection!')
         const { config: { servicetask }, ctx } = this;
-        const {socket} = ctx;
         for(const {name} of servicetask){
             const service = ctx.getViewService(name);
             // 停止 定时 任务
