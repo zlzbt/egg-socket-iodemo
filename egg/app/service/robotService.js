@@ -92,6 +92,7 @@ class TaskService extends Service {
                 this.ctx.logger.error(`[${pluginName}] getLayerListData basic_area_type Response Error : `, res)
                 return
             }
+            // ctx.session.layout_areaType = res;
             getAreaType = res
         }
         const areas = await ctx.httpGet(`${api(phoenixRcs, { warehouseId }).layerApis.areaQuery}`, "", true);

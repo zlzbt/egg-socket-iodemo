@@ -9,7 +9,7 @@ module.exports = appInfo => {
   config.serverBaseUrl = 'http://172.31.239.151:9001';
   config.session = {
     renew: true,
-    // maxAge: 7 * 24 * 3600 * 1000,
+    maxAge: 7 * 24 * 3600 * 1000,
   };
 
   config.servicetask = [
@@ -19,30 +19,30 @@ module.exports = appInfo => {
   ];
 
   // 关闭 csrf
-  /* config.security = {
+  config.security = {
     csrf: {
       enable: false,
     },
-  }; */
+  };
 
   // cors 跨域配置
-  /* config.cors = {
+  config.cors = {
     origin: '*',
     // 允许请求的方法
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
-  }; */
+  };
 
 	config.io = {
 		init: { }, // passed to engine.io
 		namespace: {
-			'/': {
-			  connectionMiddleware: ['connection'], //中间件
-			  packetMiddleware: [],//中间件
-			},
-      /* '/control': {
+			/* '/': {
 			  connectionMiddleware: ['connection'], //中间件
 			  packetMiddleware: [],//中间件
 			}, */
+      '/control': {
+			  connectionMiddleware: ['connection'], //中间件
+			  packetMiddleware: [],//中间件
+			},
 			'/catch': {},
 		},
 	}

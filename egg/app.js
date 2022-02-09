@@ -3,6 +3,7 @@ class AppBootHook {
     constructor(app) {
         this.app = app;
     }
+    
 
     configWillLoad() {
         // 此时 config 文件已经被读取并合并，但是还并未生效

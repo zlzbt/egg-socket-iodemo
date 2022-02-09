@@ -22,10 +22,11 @@ class homeController extends Controller {
 
   async catch() {
     const { ctx, app } = this;
-    const nsp = app.io.of('/catch');
+    const nsp = app.io.of('/');
     const message = ctx.args[0] || {};
     const socket = ctx.socket;
     const socketId = socket.id;  //发过来信息的  ws 连接 id
+    await nsp.emit('message', message, socketId)   //这里注意全部用户都会接收到 只要链接着
     await nsp.emit('catch', message, socketId)   //这里注意全部用户都会接收到 只要链接着
   }
 }
