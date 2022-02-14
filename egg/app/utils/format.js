@@ -181,20 +181,20 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
   })
 
   return {
-    code: 'robot-console-plugin',
+    code: 'leftNavMsg',
     listInfo: {
       robot: getRobotInfo,
-      job: getTransportOrderList,
+      workOrder: getTransportOrderList,
       task: getTaskList,
-      alert: getMessageList,
+      alarm: getMessageList,
       layer: getLayerList,
       stats: globalStatisticsData
     },
     count: {
       robot: formatTotalCount(getRobotCount, ctx),
-      job: formatTotalCount(transportOrderCount, ctx, 'wcs.'),
+      workOrder: formatTotalCount(transportOrderCount, ctx, 'wcs.'),
       task: formatTotalCount(taskCount, ctx),
-      alert: formatTotalCount(getAlarmCount, ctx)
+      alarm: formatTotalCount(getAlarmCount, ctx)
     }
   }
 }
