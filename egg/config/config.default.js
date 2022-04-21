@@ -4,17 +4,17 @@ module.exports = appInfo => {
   const config = exports = {};
 
   // use for cookie sign key, should change to your own and keep security
-  config.keys = 'egg_socket_1622168544530_5598';
+  config.keys = 'egg_socket_1645756188220_7135';
 
-  config.serverBaseUrl = 'http://172.31.239.151:9001';
+  config.serverBaseUrl = 'http://172.31.239.58:9001';
   config.session = {
     renew: true,
     maxAge: 7 * 24 * 3600 * 1000,
   };
 
   config.servicetask = [
-    { room: rackRoom, name: 'rackService' },
-    { room: lockpointRoom, name: 'lockPointService' },
+    /* { room: rackRoom, name: 'rackService' },
+    { room: lockpointRoom, name: 'lockPointService' }, */
     { room: robotRoom, name: 'robotService' },
   ];
 

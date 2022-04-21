@@ -241,7 +241,7 @@ class TaskService extends Service {
         const timer = setInterval(async () => {
             const { config: { serverBaseUrl: phoenixRcs }, ctx } = this;
             const { socket, session, warehouseId } = ctx
-            const mapZones = (session.mapZones || '').split(',') || 'kckq';
+            const mapZones = ['kckq'] || (session.mapZones || '').split(',') || ['kckq'];
             if (!mapZones || mapZones.length === 0) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval mapZones is NULL `, warehouseId)
             }
@@ -255,11 +255,11 @@ class TaskService extends Service {
             const { statistics = {}, statusList: robotListData = [] } = (getRobotListConsole.data) || {}
             // 机器人分类数量
             const getRobotCount = {};
+            getRobotCount['ALL'] = robotListData.length;
             (statistics.status || []).forEach(ele => {
                 const { text, value } = ele || {};
                 getRobotCount[text] = value;
             });
-            getRobotCount['ALL'] = robotListData.length;
 
             // 获取任务列表
             let getTaskList = await ctx.httpGet(apis.leftListApis.getTaskLists, {}, true);
@@ -269,9 +269,9 @@ class TaskService extends Service {
             const getTaskListData = getTaskList.data || [];
             // 获取任务分类数量
             let taskCount = {
+                "ALL": getTaskListData.length,
                 "WAITING": 0,
                 "EXECUTING": 0,
-                "ALL": getTaskListData.length
             };
 
             // 任务统计
@@ -309,6 +309,7 @@ class TaskService extends Service {
 
             // 获取告警列表
             let getMessageList = await ctx.httpGet(`${api(phoenixRcs, { warehouseId }).leftListApis.getMessageList}`)
+            console.log('getMessageList', getMessageList)
             if (getMessageList && getMessageList.success === false) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval robot Info List Error Response: `, getMessageList)
                 getMessageList = []
@@ -329,7 +330,6 @@ class TaskService extends Service {
             if (globalStatisticsData && globalStatisticsData.success === false) {
                 ctx.logger.error(`[${pluginName}] RobotTimer Interval globalStatisticsData List Error Response: `, globalStatisticsData)
             }
-
             // 左侧列表所有信息格式化
             const total_data = formatTotalDataInfo(robotListData, getTaskListData, getTransportOrderList, getMessageList, getLayerList,
                 getRobotCount, transportOrderCount, taskCount, getAlarmCount, globalStatisticsData, ctx);

@@ -186,7 +186,7 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
       robot: getRobotInfo,
       workOrder: getTransportOrderList,
       task: getTaskList,
-      alarm: getMessageList,
+      notice: getMessageList,
       layer: getLayerList,
       stats: globalStatisticsData
     },
@@ -194,7 +194,7 @@ const formatTotalDataInfo = (getRobotInfo = [], getTaskList = [], getTransportOr
       robot: formatTotalCount(getRobotCount, ctx),
       workOrder: formatTotalCount(transportOrderCount, ctx, 'wcs.'),
       task: formatTotalCount(taskCount, ctx),
-      alarm: formatTotalCount(getAlarmCount, ctx)
+      notice: formatTotalCount(getAlarmCount, ctx)
     }
   }
 }
@@ -206,7 +206,7 @@ const formatTotalCount = (countData = {}, ctx, prefix = '', module = 'agvConsole
   const counts = []
   Object.keys(countData).forEach(key => {
     counts.push({
-      label: ctx.__(`${module}${prefix}${key}`),
+      label: key || ctx.__(`${module}${prefix}${key}`),
       number: countData[key],
       key: key
     })

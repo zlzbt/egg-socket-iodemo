@@ -61,9 +61,9 @@ module.exports = {
 
         try{
             const resultObj = await this.curl(url, option);
-            /* if(resultObj.status !== 200){
+            if(resultObj.status !== 200){
                 return Object.assign({ success: false, status: resultObj.status }, resultObj.data);
-            } */
+            }
             if(autoType){
                 const type = resultObj.headers['content-type'].replace(/;.*$/, '');
                 switch(type){

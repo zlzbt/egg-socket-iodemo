@@ -1,9 +1,10 @@
 'use strict';
 const serviceName = 'socketService';
 module.exports = () => {
+  
   return async (ctx, next) => {
     const service = ctx.getViewService(serviceName);
-    console.log('>>>>>>>>>>#6 packet')
+    console.log('>>>>>>>>>>#6 connect')
     if (typeof service.connect === 'function') {
       // socket 连接
       await service.connect();
